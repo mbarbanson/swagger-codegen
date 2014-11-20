@@ -124,6 +124,10 @@ public class DefaultCodegen {
     return name;
   }
 
+  public String toOperationId(String operationId) {
+    return operationId;
+  }
+
   public String toVarName(String name) {
     if(reservedWords.contains(name))
       return escapeReservedWord(name);
@@ -538,7 +542,7 @@ public class DefaultCodegen {
       System.out.println("generated operationId " + operationId);
     }
     op.path = path;
-    op.operationId = operationId;
+    op.operationId = toOperationId(operationId);
     op.summary = escapeText(operation.getSummary());
     op.notes = escapeText(operation.getDescription());
     op.tags = operation.getTags();
