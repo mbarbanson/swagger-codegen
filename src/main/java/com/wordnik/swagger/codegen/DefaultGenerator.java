@@ -3,7 +3,6 @@ package com.wordnik.swagger.codegen;
 import com.wordnik.swagger.models.*;
 import com.wordnik.swagger.models.properties.*;
 import com.wordnik.swagger.util.*;
-
 import com.wordnik.swagger.codegen.languages.*;
 import com.samskivert.mustache.*;
 
@@ -338,6 +337,31 @@ public class DefaultGenerator implements Generator {
       mo.put("model", cm);
       models.add(mo);
       allImports.addAll(cm.imports);
+
+      Map<String, Model> allDefinitions = swagger.getDefinitions();
+      if (mm instanceof ComposedModel) {
+      	ComposedModel composed = (ComposedModel) mm;
+
+      	// add interface models to codegenModel so it's available when executing the mustache template 
+      	if (composed.getInterfaces() != null) {
+      		List<RefModel> interfaces = composed.getInterfaces();
+
+      		for (RefModel iface: interfaces) {
+      			String refName = iface.get$ref();
+      		    if(refName.indexOf("#/definitions/") == 0)
+      			  refName = refName.substring("#/definitions/".length());       			
+      			Model ifaceModel = allDefinitions.get(refName);
+      			CodegenModel im = config.fromModel(refName, ifaceModel);
+      			if (cm.interfaces == null) cm.interfaces = new ArrayList<CodegenModel>();
+      			cm.interfaces.add(im);
+      			if (!config.languageSpecificPrimitives().contains(refName) && 
+  			        !config.defaultIncludes().contains(refName)) {
+      				cm.imports.add(refName);
+      			}
+      			if (iface != interfaces.get(interfaces.size() - 1)) im.hasMoreInterfaces = true;
+      		}
+      	}
+      } 
     }
     objs.put("models", models);
 

@@ -7,10 +7,11 @@ import java.util.*;
 
 public class CodegenModel {
   public String parent;
+  public List<CodegenModel> interfaces;
   public String name, classname, description, classVarName, modelJson;
   public String defaultValue;
   public List<CodegenProperty> vars = new ArrayList<CodegenProperty>();
   public Set<String> imports = new HashSet<String>();
-  public Boolean hasVars, emptyVars, hasMoreModels;
+  public Boolean hasVars, emptyVars, hasMoreModels, hasInterfaces, hasMoreInterfaces;
   public ExternalDocs externalDocs;
 }

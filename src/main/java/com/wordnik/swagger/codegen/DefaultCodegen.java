@@ -339,7 +339,8 @@ public class DefaultCodegen {
     m.classVarName = toVarName(name);
     m.modelJson = Json.pretty(model);
     m.externalDocs = model.getExternalDocs();
-    int count = 0;
+    m.hasInterfaces = false;
+    m.hasMoreInterfaces = false;
     if(model instanceof ArrayModel) {
       ArrayModel am = (ArrayModel) model;
       ArrayProperty arrayProperty = new ArrayProperty(am.getItems());
@@ -358,23 +359,55 @@ public class DefaultCodegen {
     }
     else if (model instanceof RefModel) {
       // TODO
+      System.out.println("RefModel logic not implemented " + m.name);
     }
+    else if (model.getClass() == ComposedModel.class) {
+	  ComposedModel composed = (ComposedModel) model;
+	  Model parent = composed.getParent();
+	  Model impl = composed.getChild();
+	  
+	  List<RefModel> interfaces = composed.getInterfaces();
+      if (interfaces != null) m.hasInterfaces = true;
+      
+	  RefModel parentModel = (RefModel)parent;	  
+	  if (parentModel != null) {
+		  String refModelName = parentModel.get$ref();
+	      if(refModelName.indexOf("#/definitions/") == 0)
+		  refModelName = refModelName.substring("#/definitions/".length());	  
+		  m.parent = toModelName(refModelName);
+	  }
+	
+	  if (!languageSpecificPrimitives.contains(m.parent) && 
+	        !defaultIncludes.contains(m.parent)) {
+		  m.imports.add(m.parent);
+	  }
+	  ModelImpl implModel = (ModelImpl)impl;
+	  fromModelImpl(name, implModel, m);
+	}    
     else {
       ModelImpl impl = (ModelImpl) model;
-      if(impl.getAdditionalProperties() != null) {
-        MapProperty mapProperty = new MapProperty(impl.getAdditionalProperties());
-        CodegenProperty cp = fromProperty(name, mapProperty);
-        if(cp.complexType != null && !defaultIncludes.contains(cp.complexType))
-          m.imports.add(cp.complexType);
-        m.parent = toInstantiationType(mapProperty);
-        String containerType = cp.containerType;
-        if(instantiationTypes.containsKey(containerType))
-          m.imports.add(instantiationTypes.get(containerType));
-        if(typeMapping.containsKey(containerType)) {
-          containerType = typeMapping.get(containerType);
-          cp.containerType = containerType;
-          m.imports.add(containerType);
-        }
+      this.fromModelImpl(name, impl, m);
+    } 
+    return m;
+  }
+  
+  public void fromModelImpl(String name, ModelImpl impl, CodegenModel m) {
+	  int count = 0;
+      Property additional = impl.getAdditionalProperties();
+      if(additional != null) {
+		  MapProperty mapProperty = new MapProperty(impl.getAdditionalProperties());
+		  CodegenProperty cp = fromProperty(name, mapProperty);
+		  if(cp.complexType != null && !defaultIncludes.contains(cp.complexType))
+			  m.imports.add(cp.complexType);
+		  m.parent = toInstantiationType(mapProperty);
+		  String containerType = cp.containerType;
+		  if(instantiationTypes.containsKey(containerType))
+			  m.imports.add(instantiationTypes.get(containerType));
+		  if(typeMapping.containsKey(containerType)) {
+			  containerType = typeMapping.get(containerType);
+			  cp.containerType = containerType;
+			  m.imports.add(containerType);
+		  }
       }
       if(impl.getProperties() != null && impl.getProperties().size() > 0) {
         m.hasVars = true;
@@ -393,6 +426,7 @@ public class DefaultCodegen {
                   cp.required = true;
               }
             }
+            // Unnecessary code duplicated below, should be removed
             if(cp.complexType != null && !defaultIncludes.contains(cp.complexType)) {
               m.imports.add(cp.complexType);
             }
@@ -423,8 +457,6 @@ public class DefaultCodegen {
       else {
         m.emptyVars = true;
       }
-    }
-    return m;
   }
 
   public CodegenProperty fromProperty(String name, Property p) {
@@ -731,7 +763,7 @@ public class DefaultCodegen {
                 name = typeMapping.get(name);
               else {
                 name = toModelName(name);
-                if(defaultIncludes.contains(name)) {
+                if(!defaultIncludes.contains(name)) {
                   imports.add(name);
                 }
                 imports.add(name);

@@ -32,6 +32,7 @@ public interface CodegenConfig {
   CodegenModel fromModel(String name, Model model);
   CodegenOperation fromOperation(String resourcePath, String httpMethod, Operation operation);
   Set<String> defaultIncludes();
+  public Set<String> languageSpecificPrimitives();
   Map<String, String> typeMapping();
   Map<String, String> instantiationTypes();
   Map<String, String> importMapping();

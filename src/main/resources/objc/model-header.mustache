@@ -1,21 +1,26 @@
 #import <Foundation/Foundation.h>
-#import "SWGObject.h"
 {{#imports}}#import "{{import}}.h"
 {{/imports}}
-{{newline}}
 {{#models}}
 {{#model}}
-
-@interface {{classname}} : {{^parent}}SWGObject{{/parent}}{{#parent}}{{parent}}{{/parent}}
-
+{{^parent}}
+#import "SWGObject.h"
+{{/parent}}
+{{newline}}
+@interface {{classname}} : {{^parent}}SWGObject{{/parent}}{{#parent}}{{parent}}{{/parent}}{{#hasInterfaces}}<{{#interfaces}}{{name}}{{#hasMoreInterfaces}}, {{/hasMoreInterfaces}}{{^hasMoreInterfaces}}>
+																								{{/hasMoreInterfaces}}{{/interfaces}}{{/hasInterfaces}}
 {{#vars}}
 @property(nonatomic) {{datatype}} {{name}};  {{#description}}/* {{{description}}} {{#isNotRequired}}[optional]{{/isNotRequired}} */{{/description}}{{newline}}
 {{/vars}}
+{{#interfaces}}
+{{#vars}}
+@property(nonatomic) {{datatype}} {{name}};  {{#description}}/* {{{description}}} {{#isNotRequired}}[optional]{{/isNotRequired}} */{{/description}}{{newline}}
+{{/vars}}
+{{/interfaces}}
+{{newline}}
 {{#hasVars}}
 - (id) {{#vars}}{{name}}: ({{datatype}}) {{name}}{{#hasMore}}
-  {{/hasMore}}{{^hasMore}};{{/hasMore}}
-       {{/vars}}
-{{/hasVars}}
+  {{/hasMore}}{{^hasMore}};{{/hasMore}}{{/vars}}{{/hasVars}}
 - (id) initWithValues: (NSDictionary*)dict;
 - (NSDictionary*) asDictionary;
 {{newline}}
