@@ -367,7 +367,8 @@ public class DefaultCodegen {
 	  Model impl = composed.getChild();
 	  
 	  List<RefModel> interfaces = composed.getInterfaces();
-      if (interfaces != null) m.hasInterfaces = true;
+      if (interfaces.size() != 0) 
+    	  m.hasInterfaces = true;
       
 	  RefModel parentModel = (RefModel)parent;	  
 	  if (parentModel != null) {
